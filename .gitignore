@@ -1,5 +1,8 @@
+.venv/
 venv/
+**/__pycache__/
 backend/data/uploads/
-__pycache__/
 *.log
 .env
+node_modules/
+dist/

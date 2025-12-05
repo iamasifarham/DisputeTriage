@@ -1,0 +1,5 @@
+venv/
+backend/data/uploads/
+__pycache__/
+*.log
+.env

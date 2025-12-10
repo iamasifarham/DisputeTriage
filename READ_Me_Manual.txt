@@ -8,3 +8,18 @@ And also install the node modules dependencies from /.../frontend> npm install
 The "backend" and "frontend" folders should be inside the "root" folder.
 
 Inside the /dispute_backend> Dispute Triage System.pptx is provided please find this attached.
+
+
+-------------LOGIN Credentials-------------------
+
+Admin (initializes):
+
+username: admin
+password: admin123
+
+     ---------------------
+
+Employee:
+
+username: thedarkknight
+password: password

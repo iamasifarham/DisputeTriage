@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 import json
 from backend.auth.jwt_handler import employee_required
-
+from backend.logic.signing import generate_signed_url, verify_signed_url
 from backend.services.database import get_connection, get_case
 from backend.logic.progress import stage_text
 from backend.logic.triage import calculate_priority_from_days
@@ -143,6 +143,9 @@ def update_stage(ticket_id: str, update: StageUpdate,  current_user = Depends(em
         new_amount
     )
 
+    # Calculate progress percent based on stage
+    progress_percent = {1: 0, 2: 25, 3: 50, 4: 75, 5: 100}.get(update.new_stage, 0)
+
     conn = get_connection()
     cur = conn.cursor()
 
@@ -155,7 +158,8 @@ def update_stage(ticket_id: str, update: StageUpdate,  current_user = Depends(em
             pending_action = ?,
             triage_score = ?,
             priority_bucket = ?,
-            routed_to = ?
+            routed_to = ?,
+            progress_percent = ?
         WHERE ticket_id = ?
     """, (
         update.new_stage,
@@ -166,6 +170,7 @@ def update_stage(ticket_id: str, update: StageUpdate,  current_user = Depends(em
         new_priority["score"],
         new_priority["bucket"],
         new_routed_to,
+        progress_percent,
         ticket_id
     ))
 
@@ -405,6 +410,41 @@ def download_last_document(ticket_id: str,  current_user = Depends(employee_requ
         media_type="application/octet-stream",
         filename=filename
     )
+    
+@router.get("/case/{ticket_id}/document-url")
+def get_document_url(ticket_id: str, current_user = Depends(employee_required)):
+    row = get_case(ticket_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="ticket not found")
+
+    file_name = row["last_uploaded_document"]
+    if not file_name:
+        raise HTTPException(status_code=404, detail="No document uploaded")
+
+    token = generate_signed_url(file_name)
+
+    url = f"http://127.0.0.1:8000/employee/file?token={token}"
+
+    return {"url": url}
+
+@router.get("/file")
+def serve_signed_file(token: str):
+    try:
+        data = verify_signed_url(token)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Link expired")
+    except Exception:
+        raise HTTPException(status_code=401, detail="Invalid link")
+
+    file_name = data["file"]
+    file_path = os.path.join(UPLOAD_DIR, file_name)
+
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(file_path)
+    
+
 
 @router.get("/me")
 def employee_me(current_user = Depends(employee_required)):

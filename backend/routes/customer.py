@@ -119,16 +119,19 @@ def customer_status(ticket_id: str):
         message = user_friendly_status(row["stage_label"], pending)
 
     return {
-        "ticket_id": row["ticket_id"],
-        "status": row["stage_label"],
-        "message": message,
-        "progress": row["progress_percent"],
-        "pending_action": pending,
-        "required_documents": required_docs,
-        "rejection_reason": rejection_reason,
-        "issue": row["complaint_type"],
-        "channel": row["channel"]
-    }
+    "ticket_id": row["ticket_id"],
+    "transaction_id": row["transaction_id"],
+    "amount": row["amount"],
+    "status": row["stage_label"],
+    "message": message,
+    "progress": row["progress_percent"],
+    "pending_action": pending,
+    "required_documents": required_docs,
+    "rejection_reason": rejection_reason,
+    "issue": row["complaint_type"],
+    "channel": row["channel"]
+}
+
 
 # -----------------------------
 # CUSTOMER: Upload Document

@@ -1,4 +1,4 @@
-# backend/settings.py
+
 
 
 JWT_SECRET = "change_this_secret_soon"
@@ -9,7 +9,7 @@ JWT_EXP_MINUTES = 120
 # EMAIL CONFIG (Switchable)
 # ===============================
 
-# Use MAILTRAP for development
+# Use MAILTRAP
 USE_MAILTRAP = True
 
 # ----------------------
@@ -21,7 +21,7 @@ MAILTRAP_SMTP_USER = "f5c4b8df59ff25"
 MAILTRAP_SMTP_PASS = "33450aa651d22a"
 
 # ----------------------
-# REAL SMTP SETTINGS (Gmail / Outlook / Custom)
+# REAL SMTP SETTINGS 
 # ----------------------
 SMTP_HOST = "smtp.gmail.com"
 SMTP_PORT = 587

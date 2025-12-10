@@ -5,9 +5,9 @@ import api from "../../api/axios";
 export default function EmployeeCaseDetails() {
   const { ticket_id } = useParams();
   const navigate = useNavigate();
-
   const token = localStorage.getItem("token");
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employee, setEmployee] = useState(null);
   const [details, setDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,14 +30,15 @@ export default function EmployeeCaseDetails() {
   const [verifyReason, setVerifyReason] = useState("");
   const [branchVisit, setBranchVisit] = useState(false);
 
-  // ----------------------------------
-  // LOAD EMPLOYEE
-  // ----------------------------------
+  const accent = "#be3f3f";
+  const bar = "#7C2D2D";
+
+  // Load employee info
   useEffect(() => {
     async function loadEmployeeInfo() {
       try {
         const res = await api.get("/employee/me", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setEmployee(res.data);
       } catch (err) {
@@ -47,14 +48,12 @@ export default function EmployeeCaseDetails() {
     loadEmployeeInfo();
   }, []);
 
-  // ----------------------------------
-  // LOAD CASE DETAILS
-  // ----------------------------------
+  // Load case details
   useEffect(() => {
     async function loadCase() {
       try {
         const res = await api.get(`/employee/case/${ticket_id}`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setDetails(res.data);
       } catch (err) {
@@ -69,37 +68,32 @@ export default function EmployeeCaseDetails() {
   if (loading || !details) {
     return (
       <div className="h-screen flex justify-center items-center text-xl">
-        Loading case details...
+        Loading case details…
       </div>
     );
   }
 
-  // ----------------------------------------------------
-  // ACTION: UPDATE STAGE
-  // ----------------------------------------------------
+  // ACTION: update stage
   const updateStage = async () => {
     try {
       await api.put(
         `/employee/case/${ticket_id}/stage`,
         {
           new_stage: Number(newStage),
-          pending_action: pendingAction || null
+          pending_action: pendingAction || null,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      window.alert("Stage updated!");
+      alert("Stage updated!");
       setShowStageModal(false);
       window.location.reload();
     } catch (err) {
       console.error("Stage update error:", err);
-      window.alert("Failed to update stage.");
+      alert("Failed to update stage.");
     }
   };
 
-  // ----------------------------------------------------
-  // ACTION: REQUEST DOCUMENTS
-  // ----------------------------------------------------
+  // ACTION: request documents
   const sendDocumentRequest = async () => {
     const docs = [...requestedDocs];
     if (requestedDocs.includes("Other") && otherDoc.trim()) {
@@ -112,110 +106,144 @@ export default function EmployeeCaseDetails() {
         { required_docs: docs },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      window.alert("Document request sent.");
+      alert("Document request sent.");
       setShowRequestModal(false);
+      window.location.reload();
     } catch (err) {
       console.error("Doc request error:", err);
-      window.alert("Failed to request documents.");
+      alert("Failed to request documents.");
     }
   };
 
-  // ----------------------------------------------------
-  // ACTION: VERIFY DOCUMENT
-  // ----------------------------------------------------
+  // ACTION: verify document
   const verifyDocument = async () => {
     let status = verifyStatus;
-
-    if (branchVisit) {
-      status = "branch";
-    }
+    if (branchVisit) status = "branch";
 
     try {
       await api.put(
         `/employee/case/${ticket_id}/verify-document`,
         {
           status,
-          reason: verifyReason || null
+          reason: verifyReason || null,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      window.alert("Verification submitted.");
+      alert("Verification submitted.");
       setShowVerifyModal(false);
       window.location.reload();
     } catch (err) {
       console.error("Verification error:", err);
-      window.alert("Verification failed.");
+      alert("Verification failed.");
     }
   };
 
-  // ----------------------------------------------------
-  // DOCUMENT HANDLERS
-  // ----------------------------------------------------
-  const viewDocument = () => {
-    window.open(
-      `http://127.0.0.1:8000/employee/case/${ticket_id}/document`,
-      "_blank"
+  const viewDocument = async () => {
+  try {
+    const res = await api.get(
+      `/employee/case/${ticket_id}/document-url`,
+      { headers: { Authorization: `Bearer ${token}` }}
+    );
+
+    window.open(res.data.url, "_blank");
+  } catch (err) {
+    alert("Could not load document");
+  }
+};
+
+
+
+  const toggleDocSelection = (value) => {
+    setRequestedDocs((prev) =>
+      prev.includes(value)
+        ? prev.filter((x) => x !== value)
+        : [...prev, value]
     );
   };
 
-  const downloadDocument = () => {
-    window.open(
-      `http://127.0.0.1:8000/employee/case/${ticket_id}/document/download`,
-      "_blank"
-    );
-  };
-
-  // ----------------------------------------------------
-  // MAIN UI
-  // ----------------------------------------------------
+  // -------------------
+  // RETURN JSX FIXED
+  // -------------------
   return (
     <div className="flex min-h-screen bg-gray-100">
 
-      {/* ----------------------------------
-          SIDEBAR (same as admin style)
-      ---------------------------------- */}
-      <div className="w-64 bg-red-800 text-white p-6 flex flex-col">
-        <h1 className="text-xl font-semibold mb-4">Employee Panel</h1>
+      {/* SIDEBAR */}
+      <div
+        className={`fixed inset-y-0 left-0 w-64 z-40 p-6 flex flex-col shadow-xl transform transition-transform duration-300
+        ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+        style={{ backgroundColor: bar, color: "white" }}
+      >
+        {/* close button mobile */}
+        <button
+          onClick={() => setSidebarOpen(false)}
+          className="text-2xl self-end"
+        >
+          ✕
+        </button>
 
         {employee && (
-          <div className="bg-red-700 p-4 rounded-xl space-y-1 mb-6 shadow">
-            <h2 className="text-lg font-semibold">{employee.full_name}</h2>
-            <p className="text-sm opacity-90">{employee.username}</p>
-            <p className="text-sm opacity-90">{employee.email}</p>
+          <div className="bg-white bg-opacity-10 p-4 rounded-xl mt-4">
+            <h3 className="text-lg font-semibold">{employee.full_name}</h3>
+            <p className="opacity-80">{employee.username}</p>
+            <p className="opacity-80">{employee.email}</p>
           </div>
         )}
 
         <button
-          className="mt-auto bg-white text-red-700 font-semibold py-2 rounded-xl"
           onClick={() => {
             localStorage.clear();
             navigate("/");
           }}
+          className="mt-auto bg-white text-[#7C2D2D] font-semibold py-2 rounded-xl"
         >
           Logout
         </button>
       </div>
 
-      {/* ----------------------------------
-          MAIN CONTENT
-      ---------------------------------- */}
-      <div className="flex-1">
+      {/* overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-30 md:hidden"
+          onClick={() => setSidebarOpen(false)}
+        ></div>
+      )}
+
+      {/* MAIN AREA */}
+      <div className={`flex-1 ${sidebarOpen ? "md:ml-64" : "md:ml-0"}`}>
 
         {/* TOP BAR */}
-        <div className="bg-red-800 text-white px-10 py-4 flex justify-between items-center shadow">
-          <h1 className="text-xl font-semibold">BANK NAME</h1>
-          <p>Logged in as: {employee?.username}</p>
+        <div
+          className="w-full flex items-center justify-between px-6 py-4 shadow"
+          style={{ backgroundColor: bar, color: "white" }}
+        >
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate("/employee")}
+              className="text-2xl font-bold"
+            >
+              ←
+            </button>
+
+            <button
+              onClick={() => setSidebarOpen((s) => !s)}
+              className="text-2xl font-bold"
+            >
+              ☰
+            </button>
+          </div>
+
+          <div className="text-xl font-bold">BANK NAME</div>
         </div>
 
-        {/* CASE DETAILS */}
-        <div className="p-10 max-w-4xl mx-auto space-y-8">
+        {/* CONTENT */}
+        <div className="p-8 max-w-6xl mx-auto space-y-8">
 
-          <h1 className="text-2xl font-bold">Case Details – {details.ticket_id}</h1>
+          <h1 className="text-2xl font-bold">
+            Case Details – {details.ticket_id}
+          </h1>
 
           {/* INFO GRID */}
-          <div className="grid grid-cols-2 gap-6 bg-white p-6 rounded-xl shadow">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white p-6 rounded-xl shadow">
 
             <div>
               <h3 className="font-semibold">Amount</h3>
@@ -234,7 +262,9 @@ export default function EmployeeCaseDetails() {
 
             <div>
               <h3 className="font-semibold">Stage</h3>
-              <p>{details.stage} – {details.stage_label}</p>
+              <p>
+                {details.stage} – {details.stage_label}
+              </p>
             </div>
 
             <div>
@@ -256,29 +286,22 @@ export default function EmployeeCaseDetails() {
               <h3 className="font-semibold">Customer Mobile</h3>
               <p>{details.customer_mobile || "Not provided"}</p>
             </div>
-
           </div>
 
           {/* DOCUMENT SECTION */}
-          <div className="bg-white shadow p-6 rounded-xl space-y-4">
+          <div className="bg-white p-6 rounded-xl shadow space-y-4">
             <h2 className="text-xl font-semibold">Documents</h2>
 
             {details.last_uploaded_document ? (
-              <>
+              <div className="flex gap-3">
                 <button
                   onClick={viewDocument}
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
+                  className="px-4 py-2 rounded text-white"
+                  style={{ backgroundColor: accent }}
                 >
                   View Last Document
                 </button>
-
-                <button
-                  onClick={downloadDocument}
-                  className="px-4 py-2 bg-green-600 text-white rounded ml-2"
-                >
-                  Download
-                </button>
-              </>
+              </div>
             ) : (
               <p>No documents uploaded yet.</p>
             )}
@@ -297,40 +320,39 @@ export default function EmployeeCaseDetails() {
           </div>
 
           {/* ACTION BUTTONS */}
-          <div className="flex gap-4">
-
+          <div className="flex flex-wrap gap-4">
             <button
-              className="px-4 py-2 bg-purple-700 text-white rounded"
               onClick={() => setShowStageModal(true)}
+              className="px-4 py-2 rounded text-white"
+              style={{ backgroundColor: accent }}
             >
               Update Stage
             </button>
 
             <button
-              className="px-4 py-2 bg-orange-600 text-white rounded"
               onClick={() => setShowRequestModal(true)}
+              className="px-4 py-2 rounded text-white"
+              style={{ backgroundColor: "#d97706" }}
             >
               Request Documents
             </button>
 
             <button
-              className="px-4 py-2 bg-green-700 text-white rounded"
               onClick={() => setShowVerifyModal(true)}
+              className="px-4 py-2 rounded text-white"
+              style={{ backgroundColor: "#2f855a" }}
             >
               Verify Document
             </button>
-
           </div>
         </div>
       </div>
 
-      {/* ----------------------------------
-          MODAL: Update Stage
-      ---------------------------------- */}
+      {/* MODALS BELOW */}
+      {/* UPDATE STAGE */}
       {showStageModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
-
             <h2 className="text-xl font-semibold mb-4">Update Stage</h2>
 
             <label>New Stage:</label>
@@ -357,7 +379,8 @@ export default function EmployeeCaseDetails() {
 
             <button
               onClick={updateStage}
-              className="w-full bg-purple-700 text-white py-2 rounded"
+              className="w-full py-2 rounded text-white"
+              style={{ backgroundColor: accent }}
             >
               Update
             </button>
@@ -368,32 +391,46 @@ export default function EmployeeCaseDetails() {
             >
               Cancel
             </button>
-
           </div>
         </div>
       )}
 
-      {/* ----------------------------------
-          MODAL: Request Documents
-      ---------------------------------- */}
+      {/* REQUEST DOCUMENTS */}
       {showRequestModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
-
             <h2 className="text-xl font-semibold mb-4">Request Documents</h2>
 
-            <label>Select Documents:</label>
-            <select
-              className="w-full border p-2 rounded mb-3"
-              multiple
-              onChange={(e) =>
-                setRequestedDocs([...e.target.selectedOptions].map((o) => o.value))
-              }
-            >
-              <option value="Aadhaar Card">Aadhaar Card</option>
-              <option value="PAN Card">PAN Card</option>
-              <option value="Other">Other</option>
-            </select>
+            <label className="block mb-2">Select Documents:</label>
+
+            <div className="flex flex-col gap-2 mb-3">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={requestedDocs.includes("Aadhaar Card")}
+                  onChange={() => toggleDocSelection("Aadhaar Card")}
+                />
+                Aadhaar Card
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={requestedDocs.includes("PAN Card")}
+                  onChange={() => toggleDocSelection("PAN Card")}
+                />
+                PAN Card
+              </label>
+
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={requestedDocs.includes("Other")}
+                  onChange={() => toggleDocSelection("Other")}
+                />
+                Other
+              </label>
+            </div>
 
             {requestedDocs.includes("Other") && (
               <input
@@ -407,7 +444,8 @@ export default function EmployeeCaseDetails() {
 
             <button
               onClick={sendDocumentRequest}
-              className="w-full bg-orange-600 text-white py-2 rounded"
+              className="w-full py-2 rounded text-white"
+              style={{ backgroundColor: "#d97706" }}
             >
               Send Request
             </button>
@@ -418,21 +456,17 @@ export default function EmployeeCaseDetails() {
             >
               Cancel
             </button>
-
           </div>
         </div>
       )}
 
-      {/* ----------------------------------
-          MODAL: Verify Document
-      ---------------------------------- */}
+      {/* VERIFY DOCUMENT */}
       {showVerifyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-xl w-96 shadow-xl">
-
             <h2 className="text-xl font-semibold mb-4">Verify Document</h2>
 
-            <label>Status:</label>
+            <label className="block mb-2">Action:</label>
             <select
               className="w-full border p-2 rounded mb-3"
               value={verifyStatus}
@@ -454,7 +488,7 @@ export default function EmployeeCaseDetails() {
 
             {(verifyStatus === "rejected" || branchVisit) && (
               <textarea
-                placeholder="Reason"
+                placeholder="Reason (required)"
                 className="w-full border p-2 rounded mb-3"
                 value={verifyReason}
                 onChange={(e) => setVerifyReason(e.target.value)}
@@ -463,7 +497,8 @@ export default function EmployeeCaseDetails() {
 
             <button
               onClick={verifyDocument}
-              className="w-full bg-green-700 text-white py-2 rounded"
+              className="w-full py-2 rounded text-white"
+              style={{ backgroundColor: "#2f855a" }}
             >
               Submit Verification
             </button>
@@ -474,7 +509,6 @@ export default function EmployeeCaseDetails() {
             >
               Cancel
             </button>
-
           </div>
         </div>
       )}

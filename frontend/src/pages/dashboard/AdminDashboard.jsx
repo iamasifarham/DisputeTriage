@@ -137,7 +137,7 @@ export default function AdminDashboard() {
             onClick={() => navigate("/admin/users")}
             className="cursor-pointer bg-white shadow p-10 rounded-xl border-2 border-[#7B2F2F] hover:shadow-lg text-center"
           >
-            <img src="/folder.png" alt="folder" className="mx-auto mb-4 w-12" />
+            <img src="\public\Logo1.png" alt="folder" className="mx-auto mb-4 w-12" />
             <p className="font-semibold text-lg">Manage Users</p>
           </div>
 
@@ -146,7 +146,7 @@ export default function AdminDashboard() {
             onClick={() => navigate("/admin/cases/sorted")}
             className="cursor-pointer bg-white shadow p-10 rounded-xl border-2 border-[#7B2F2F] hover:shadow-lg text-center"
           >
-            <img src="/folder.png" alt="folder" className="mx-auto mb-4 w-12" />
+            <img src="\public\logo2.png" alt="folder" className="mx-auto mb-4 w-12" />
             <p className="font-semibold text-lg">Dispute List</p>
           </div>
         </div>

@@ -46,7 +46,7 @@ def initialize_users_db():
     conn.close()
 
 # -----------------------------
-# INIT FUNCTION (calls table + folder)
+# INIT FUNCTION  table + folder
 # -----------------------------
 def init_users_db():
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -163,14 +163,12 @@ def get_user_by_id(user_id):
     return row
 
 
-# -----------------------------
-# RUN ON FASTAPI IMPORT
-# -----------------------------
+#init
 init_users_db()
 
-# -----------------------------
-# RUN SEED ONLY WHEN RUN MANUALLY
-# -----------------------------
+
+#SEED Admin
+
 if __name__ == "__main__":
     print("Initializing users.db...")
 

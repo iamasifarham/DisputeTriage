@@ -6,14 +6,19 @@ import AdminUsers from "../pages/dashboard/AdminUsers";
 import NewUser from "../pages/dashboard/NewUser";
 import UserDetails from "../pages/dashboard/UserDetails";
 import AdminCases from "../pages/dashboard/AdminCases";
+
 import CaseDetails from "../pages/dashboard/CaseDetails";
 import EmployeeDashboard from "../pages/employee/EmployeeDashboard";
 import EmployeeCaseDetails from "../pages/employee/EmployeeCaseDetails";
+
+import CustomerPortal from "../pages/customer/CustomerPortal";
+
+
 export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/verify-otp" element={<OTP />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/users" element={<AdminUsers />} />
@@ -24,6 +29,8 @@ export default function AppRouter() {
         <Route path="/employee" element={<EmployeeDashboard />} />
         <Route path="/employee/case/:ticket_id" element={<EmployeeCaseDetails />} />
   
+        <Route path="/customer" element={<CustomerPortal />} />
+
     </Routes>
     
     </BrowserRouter>

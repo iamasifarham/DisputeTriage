@@ -117,7 +117,7 @@ def calculate_priority_from_days(amount: float, days_open: int, stage_days: int,
 
 
 # -------------------------
-# MAIN: Timestamps Mode
+# MAIN: Timestamps Mode 
 # -------------------------
 def calculate_priority_from_timestamps(amount: float, registered_date: datetime, present_stage_date: datetime, stage: int, complaint_type: str = ""):
     now = datetime.now()

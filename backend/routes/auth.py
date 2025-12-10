@@ -50,7 +50,12 @@ def login_step_one(data: LoginRequest):
     # Generate OTP
     otp = "".join(random.choices(string.digits, k=6))
     save_otp(data.username, otp)
-
+    
+    #Print___OTP___for test#######cshg
+    print("\n=============================")
+    print(f" OTP GENERATED for {data.username}: {otp}")
+    print("=============================\n")
+    
     # Send email
     send_otp_email(
         to_email=user["email"],
